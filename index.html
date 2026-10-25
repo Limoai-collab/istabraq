@@ -102,10 +102,20 @@ body.adm .s,body.adm #sp{display:none!important}
 .cert{border:4px double var(--gold);background:#fffaf0;border-radius:16px;padding:18px;line-height:1.9}
 .cert b{display:block;font:600 1.4rem 'Reem Kufi',serif;color:var(--deep)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+#cv{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 40%,#fff,#fde4ee);display:grid;place-content:center;gap:14px;text-align:center;cursor:pointer;transition:opacity .7s,transform .7s}
+#cv.go{opacity:0;transform:scale(1.2);pointer-events:none}
+#cv .env{font-size:6rem;animation:bob 1.4s infinite}
+#cv p{font:600 1.2rem 'Reem Kufi',sans-serif;color:var(--deep);margin:0}
+#cv small{color:#9c1346;opacity:.7}
+#pg{position:fixed;top:0;left:0;right:0;height:5px;z-index:70;background:rgba(244,143,177,.25)}
+#pg i{display:block;float:right;height:100%;width:0;background:linear-gradient(90deg,#f48fb1,#d81b60);transition:width .6s;border-radius:5px 0 0 5px}
+#ly{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12% + env(safe-area-inset-bottom,0px));z-index:40;width:max-content;max-width:90%;text-align:center;font:600 1.45rem/1.9 'Reem Kufi','Cairo',serif;color:var(--deep);background:rgba(255,255,255,.78);padding:10px 22px;border-radius:26px;box-shadow:0 8px 28px rgba(216,27,96,.25);opacity:0;transition:opacity .6s;pointer-events:none;white-space:pre-line}
+#ly.on{opacity:1}
 </style>
 </head>
 <body>
-<div id="dark"></div><div id="glow"></div><div id="sp"></div><div id="tt"></div>
+<div id="dark"></div><div id="glow"></div><div id="sp"></div><div id="tt"></div><div id="pg"><i></i></div><div id="ly"></div>
+<div id="cv" role="button" aria-label="افتحي الرسالة"><div class="env">💌</div><p>رسالة لكِ يا إستبرق… اضغطي لفتحها</p><small>🎧 شغّلي الصوت</small></div>
 <audio id="a3" src="voice.mp4" preload="auto"></audio>
 <button id="mu" aria-label="الصوت">🔊</button>
 <audio id="a1" src="song1.mp4" loop preload="auto"></audio>
@@ -247,7 +257,7 @@ body.adm .s,body.adm #sp{display:none!important}
 <script>
 const ENDPOINT='PUT_APPS_SCRIPT_URL_HERE';
 function send(o){if(!ENDPOINT||ENDPOINT.indexOf('PUT_')===0)return;try{fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o),keepalive:true}).catch(()=>{})}catch(e){}}
-const ADMIN=location.hash==='#admin',$=i=>document.getElementById(i),D={};
+const ADMIN=location.hash==='#admin',SYNC=location.hash==='#sync',$=i=>document.getElementById(i),D={};
 const show=id=>{document.querySelectorAll('.s').forEach(s=>s.classList.toggle('on',s.id===id));scrollTo(0,0)};
 const shake=()=>{document.body.classList.remove('shake');void document.body.offsetWidth;document.body.classList.add('shake')};
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
@@ -259,7 +269,7 @@ async function save(){track('data',{...D});send({type:'answers',sid:SID,data:D})
 
 /* 0: كتابة متحركة */
 const intro='مرحبًا بكِ يا إستبرق!\nهذه رسالة من أخيكِ عماد، يعتذر فيها عن هذه الهدية المتأخرة. هو يحبّكِ، ويستحيل أن ينسى هذا اليوم. وإن شككتِ فيه فهذا من عادتكِ، فعندكِ نقص ثقة 😂\nالمهم، عندكِ خيارات (وليست طماطم 😂 أمزح، هذه آخر نكتة 😂). أحم… المهم، سأعطيكِ خيارات، واختاري على راحتكِ 🙂';
-(async()=>{await wait(900);const el=$('tw');for(let i=1;i<=intro.length;i++){el.textContent=intro.slice(0,i);await wait(38)}await wait(300);$('g0').classList.remove('hid')})();
+async function startIntro(){await wait(300);const el=$('tw');for(let i=1;i<=intro.length;i++){el.textContent=intro.slice(0,i);if(i%3==0)SFX.tick();await wait(38)}await wait(300);$('g0').classList.remove('hid')}
 
 $('yes').onclick=()=>show('s2');
 $('money').onclick=()=>{document.body.classList.add('red');shake();$('gt').textContent='يا طمّاااعة! يعني تحبّين المصاري أكثر من أخيكِ؟ تفووو 🙂🥲';show('s1')};
@@ -340,7 +350,7 @@ $('bye').onclick=()=>{try{window.top.location.href='about:blank'}catch(e){locati
 
 /* الموسيقى */
 const a1=$('a1'),a2=$('a2');let songTwo=false;a1.volume=.12;
-function startMusic(){if(ADMIN||songTwo||!a1.paused)return;a1.play().catch(()=>{})}
+function startMusic(){if(ADMIN||SYNC||songTwo||!a1.paused)return;a1.play().catch(()=>{})}
 startMusic();['pointerdown','keydown'].forEach(ev=>addEventListener(ev,startMusic));
 const unlock=()=>{$('bye').disabled=false;$('bn').classList.add('hid')};
 a2.onended=a2.onerror=unlock;
@@ -384,6 +394,11 @@ const SFX={
  win:()=>seq([659,784,988,1319,1568],.2,'triangle',.13,.1),
  bite:()=>{noise(.1,.4,2800);tone(150,.09,'square',.08)},
  bye:()=>seq([784,659,523],.25,'triangle',.13,.16),
+ env:()=>{noise(.4,.2,900);seq([523,659,784,1047],.3,'triangle',.1,.12)},
+ good:()=>seq([880,1175],.15,'triangle',.12,.08),
+ line:()=>tone(1320,.3,'sine',.07),
+ fw:()=>{noise(.4,.25,600);setTimeout(()=>{noise(.15,.5,2000);tone(900,.2,'sine',.1,0,.3)},250)},
+ tap:()=>tone(P[Math.floor(Math.random()*6)]*2,.18,'sine',.05),
  boom:()=>{noise(.25,.9,300);noise(.12,.8,1500);tone(80,.3,'sine',.4,0,.3)},
  pop2:()=>{noise(.08,.7,1800);tone(300,.08,'square',.1,0,2)},
  clap:()=>{for(let i=0;i<70;i++)noise(.04,.25,2500+Math.random()*2000,Math.random()*3.2)},
@@ -402,12 +417,13 @@ $('wish').oninput=()=>$('wok').disabled=!$('wish').value.trim();
 $('wok').onclick=()=>{D.wish=$('wish').value.trim();save();$('wi').classList.add('hid');$('cake').classList.remove('hid');$('ct').textContent='اضغطي على الكعكة لإطفاء الشموع 🎂'};
 const JK=['يا ويلي فرقعتِها! 💥','عماد يحبّكِ 😂','لا تفرقعي كل البالونات!','كل عام وأنتِ أحلى 💗','هههه شكلكِ عصبية','عندكِ موهبة بالتفجير 💣','بالونة بألف خير 🎈','ما أحلى إستبرق! ✨'];
 let tm;
-document.addEventListener('pointerdown',e=>{sparkle(e);unlockAudio();const b=hitBalloon(e);if(!b||e.target.closest('button,input,textarea'))return;{const r=b.getBoundingClientRect();b.style.top=(r.top+r.height/2-b.offsetHeight/2)+'px';b.style.bottom='auto'}b.classList.add('pf');SFX.pop2();track('balloon','pop');setTimeout(()=>b.remove(),300);const t=$('tt');t.textContent=JK[Math.floor(Math.random()*JK.length)];t.classList.add('on');clearTimeout(tm);tm=setTimeout(()=>t.classList.remove('on'),1800)});
+document.addEventListener('pointerdown',e=>{sparkle(e);SFX.tap();unlockAudio();const b=hitBalloon(e);if(!b||e.target.closest('button,input,textarea'))return;{const r=b.getBoundingClientRect();b.style.top=(r.top+r.height/2-b.offsetHeight/2)+'px';b.style.bottom='auto'}b.classList.add('pf');SFX.pop2();track('balloon','pop');setTimeout(()=>b.remove(),300);const t=$('tt');t.textContent=JK[Math.floor(Math.random()*JK.length)];t.classList.add('on');clearTimeout(tm);tm=setTimeout(()=>t.classList.remove('on'),1800)});
 
 /* اختبار: كم تعرفين عماد؟ */
 const Q=[['شو أحلى شي في عماد؟',[['كل شي 😎','إجابة صحيحة، وكلها صحيحة 😎'],['وسامته','أجل أجل، المحاجب أولًا 😂'],['تواضعه','هههه تواضعه فعلًا… أنا أضحك 🙂']]],['كم مرّة سينسى عماد عيد ميلادكِ؟',[['مستحيل ينسى!','ممتاز! أخيرًا واحدة تثق فيّ 🥹'],['مرّة وحدة','شكّيتِ فيّ مرة ثانية 😂 نقص ثقة!'],['كل سنة','عيب عليكِ! سأخبر أمي 😂']]],['لو زعل عماد منكِ، ماذا تفعلين؟',[['أراضيه بهدية','هدية؟ سأقبلها طبعًا 😎'],['أطنّش','تطنّشين؟ بسيطة، بسجّل عليكِ 😤'],['أضحك عليه','هههه الله يسامحكِ 🙂']]]];
+Q.push(['شو لونكِ المفضّل؟',[['وردي 🌸','وردي؟ ما شاء الله، ذوقكِ يشبه الصفحة 😍'],['أسود 🖤','أسود؟! غامضة يا أستاذة 😎'],['بنفسجي 💜','بنفسجي؟ لون الملكات 👑'],['أزرق 💙','أزرق؟ هادئة وعميقة 🌊']]],['لو معكِ يوم كامل بدون التزامات، شو تسوين؟',[['أنام طول اليوم 😴','نوم؟ هههه أكيد أنتِ من فريقي'],['آكل كل شي 🍕','عرفنا أنكِ شرهة من الأطباق 😂'],['أطلع مشوار 🚶‍♀️','مشوار؟ وخذيني معكِ 😎'],['أسمع موسيقى 🎧','ذوق رفيع 🎶']]],['كم تعطين عماد من 10؟',[['10/10 طبعًا','أخيرًا إنسانة صادقة 🥹'],['9 والباقي للتواضع','كلمة حق 😎'],['5 ما يستاهل أكثر','سجّلتُ عليكِ… وسأتذكر هذا 😂']]]);
 let qi=0;
-function showQ(){const [q,o]=Q[qi];$('qq').textContent=q;$('qr').textContent='';$('qn').classList.add('hid');$('qo').innerHTML='';o.forEach(([t,r])=>{const b=document.createElement('button');b.className='btn alt';b.textContent=t;b.onclick=()=>{$('qr').textContent=r;[...$('qo').children].forEach(x=>x.disabled=true);$('qn').textContent=qi<Q.length-1?'التالي':'كملي للهدية 🎁';$('qn').classList.remove('hid')};$('qo').appendChild(b)})}
+function showQ(){const [q,o]=Q[qi];$('qq').textContent=q;$('qr').textContent='';$('qn').classList.add('hid');$('qo').innerHTML='';o.forEach(([t,r])=>{const b=document.createElement('button');b.className='btn alt';b.textContent=t;b.onclick=()=>{SFX.good();$('qr').textContent=r;[...$('qo').children].forEach(x=>x.disabled=true);$('qn').textContent=qi<Q.length-1?'التالي':'كملي للهدية 🎁';$('qn').classList.remove('hid')};$('qo').appendChild(b)})}
 $('qn').onclick=()=>{if(qi<Q.length-1){qi++;showQ()}else show('s6')};
 showQ();
 
@@ -480,6 +496,44 @@ function burstAll(){
   els.forEach(b=>{const r=b.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,col=getComputedStyle(b).backgroundColor;
     for(let i=0;i<8;i++){const p=document.createElement('i');p.className='pc';const a=Math.PI*2*i/8,d=50+Math.random()*50;p.style.cssText='left:'+cx+'px;top:'+cy+'px;background:'+col+';--dx:'+Math.cos(a)*d+'px;--dy:'+Math.sin(a)*d+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),900)}
     b.style.top=(cy-b.offsetHeight/2)+'px';b.style.bottom='auto';b.classList.add('pf');setTimeout(()=>b.remove(),300)});
+}
+
+/* الغلاف والتقدم والكلمات والألعاب النارية */
+const cv=$('cv');
+if(ADMIN||SYNC)cv.remove();else cv.onclick=()=>{cv.classList.add('go');SFX.env();a1.volume=.12;startMusic();unlockAudio();setTimeout(()=>cv.remove(),800);startIntro()};
+const ORD=['s0','s1','s2','s3','s4','s5','s10','s6','s7','s8','s9'];
+setInterval(()=>{const s=document.querySelector('.s.on'),i=s?ORD.indexOf(s.id):0;document.querySelector('#pg i').style.width=(Math.max(0,i)/(ORD.length-1)*100)+'%'},500);
+function firework(){const x=10+Math.random()*80,y=12+Math.random()*45,cols=['#ff4081','#ffd166','#fff','#b388ff','#69f0ae','#40c4ff'];SFX.fw();
+  for(let i=0;i<22;i++){const p=document.createElement('i');p.className='pc';const a=Math.PI*2*i/22,d=70+Math.random()*80;p.style.cssText='left:'+x+'vw;top:'+y+'vh;background:'+cols[i%6]+';--dx:'+Math.cos(a)*d+'px;--dy:'+Math.sin(a)*d+'px;animation-duration:1.3s';document.body.appendChild(p);setTimeout(()=>p.remove(),1400)}}
+// كلمات الأغنية الثانية: اكتب كل سطر كنص، أو [ثانية,'السطر'] إذا تريد توقيتًا دقيقًا
+const LYRICS=[[8.9, "ضوّت شموع العيد يا استبرق اليوم"], [14.0, "كل القلوب تدعي لك بالفرح الدوم"], [19.1, "ضحكتك تنوّر دنيتنا وبتمحي الهموم"], [24.3, "يا أحلى قمر منوّر بين النجوم"], [29.4, "يا استبرق هالعهد غير"], [33.3, "كل أيامك حب وخير"], [37.2, "نرقص ونغني بقلب كبير"], [41.1, "حبك فينا ما لو أخير"], [45.0, "يا استبرق هالعهد غير"], [48.8, "كل أيامك حب وخير"], [52.7, "نرقص ونغني بقلب كبير"], [56.6, "حبك فينا ما لو أخير"], [60.5, "ورد وفلوز مبحبذ بنرش بطريقك"], [64.1, "كل الكون اليوم فرحان بتوفيقك"], [67.7, "يا غالي وعزيز والكل رفيقك"], [71.2, "يدعي لك بالخير من قلبه الشفيق"], [74.8, "يا استبرق هالعهد غير"], [78.6, "كل أيامك حب وخير"], [82.3, "نرقص ونغني بقلب كبير"], [86.1, "حبك فينا ما لو أخير"], [89.9, "يا استبرق هالعهد غير"], [93.7, "كل أيامك حب وخير"], [97.5, "نرقص ونغني بقلب كبير"], [101.2, "حبك فينا ما لو أخير"], [105, "🎶"], [121.1, "يا استبرق هالعهد غير"], [124.9, "كل أيامك حب وخير"], [128.7, "نرقص ونغني بقلب كبير"], [132.4, "حبك فينا ما لو أخير"], [136.2, "يا استبرق هالعهد غير"], [140.0, "كل أيامك حب وخير"], [143.8, "نرقص ونغني بقلب كبير"], [147.5, "حبك فينا ما لو أخير"], [151.3, "سنة حلوة يا استبرق الروح"], [156.1, "عمرك طويل وبأحلى فرح بيوح"], [160.9, "بنحبك دائماً وين ما تروح"], [165.8, "وبتبقى الضحكة وبتمحي الجروح"], [170.6, "كل عام وأنت بألف خير يا استبرق الروح"]];
+let lyI=null,lyT=null,lyF=null,lyTyp=null,lyCur=-1;
+function showLine(txt,dur){const ly=$('ly');clearInterval(lyTyp);clearTimeout(lyF);ly.classList.remove('on');
+  setTimeout(()=>{ly.textContent='';ly.classList.add('on');SFX.line();let i=0;const step=Math.min(70,Math.max(25,dur*500/txt.length));
+    lyTyp=setInterval(()=>{ly.textContent=txt.slice(0,++i);if(i>=txt.length)clearInterval(lyTyp)},step)},350);
+  lyF=setTimeout(()=>ly.classList.remove('on'),Math.max(1200,(dur-.7)*1000))}
+function startLyrics(){if(lyI||!LYRICS.length)return;const D2=a2.duration||180,timed=Array.isArray(LYRICS[0]);let T;
+  if(timed)T=LYRICS.map((l,i)=>({t:l[0],x:l[1],e:i+1<LYRICS.length?LYRICS[i+1][0]:D2}));
+  else{const lead=4,tot=LYRICS.reduce((n,l)=>n+l.length,0),span=D2-lead-5;let c=lead;T=LYRICS.map(l=>{const d=span*l.length/tot,o={t:c,x:l,e:c+d};c+=d;return o})}
+  lyI=setInterval(()=>{const t=a2.currentTime;let k=-1;T.forEach((o,i)=>{if(t>=o.t)k=i});if(k>=0&&k!==lyCur){lyCur=k;showLine(T[k].x,T[k].e-T[k].t)}},250)}
+a2.addEventListener('playing',()=>{if(SYNC)return;startLyrics();if(!lyF2)lyF2=setInterval(firework,1000)});
+let lyF2=null;
+a2.addEventListener('ended',()=>{clearInterval(lyI);clearInterval(lyF2);$('ly').classList.remove('on')});
+/* أداة ضبط التوقيت: افتح الرابط وفي آخره #sync */
+if(SYNC){document.body.classList.add('adm');
+  const root=document.createElement('div');root.id='ad';document.body.appendChild(root);
+  const el=(tag,cls,txt)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;root.appendChild(n);return n};
+  el('h2','','🎚️ ضبط توقيت الكلمات');
+  el('p','','1) اضغط تشغيل. 2) كل ما يبدأ المغني سطرًا جديدًا اضغط الزر الكبير. 3) في الآخر انسخ الأرقام وأرسلها لعماد.');
+  const play=el('button','btn','▶ شغّل الأغنية'),nx=el('button','btn','');nx.style.cssText='margin:14px 0;width:100%;padding:28px 10px;font-size:1.3rem';nx.disabled=true;
+  const un=el('button','btn alt','↩ تراجع'),out=el('textarea');out.style.display='none';const cp=el('button','btn alt','📋 نسخ الأرقام');cp.style.display='none';
+  const names=LYRICS.map(l=>l[1]),rec=[];
+  const show=()=>{nx.textContent=rec.length<names.length?'السطر '+(rec.length+1)+' من '+names.length+': '+names[rec.length]:'انتهت ✅'};
+  play.onclick=()=>{a2.muted=false;a2.currentTime=0;a2.play();nx.disabled=false;show()};
+  nx.onclick=()=>{if(rec.length>=names.length)return;rec.push(+Math.max(0,a2.currentTime-.3).toFixed(1));show();
+    if(rec.length===names.length){a2.pause();out.value=JSON.stringify(rec);out.style.display='block';cp.style.display='block'}};
+  un.onclick=()=>{rec.pop();out.style.display='none';cp.style.display='none';show()};
+  cp.onclick=()=>{out.select();try{navigator.clipboard.writeText(out.value)}catch(e){}cp.textContent='تم النسخ ✔️'};
 }
 
 /* حفظ الشهادة كصورة */

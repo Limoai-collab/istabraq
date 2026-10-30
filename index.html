@@ -268,7 +268,7 @@ body.red h2{background:none!important;color:#fff!important}
   <div id="sl" class="hid f"><p class="t" id="slt" style="font-size:1rem">اضغطي على الكعكة لأكلها 🍰</p>
     <div class="slice" id="slice"><svg viewBox="0 0 200 130"><ellipse cx="100" cy="108" rx="92" ry="18" fill="#fff" stroke="#f48fb1" stroke-width="3"/><g id="wg" style="transform-origin:100px 105px;transform-box:view-box;transition:transform .25s"><rect x="45" y="55" width="110" height="48" rx="9" fill="#f8bbd0"/><path d="M45 70q14 12 28 0t27 0 28 0 27 0v-8H45z" fill="#fff"/><circle cx="100" cy="48" r="11" fill="#e53935"/></g><g id="cr" style="display:none" fill="#f06292"><circle cx="70" cy="104" r="3"/><circle cx="88" cy="108" r="2.5"/><circle cx="112" cy="103" r="3"/><circle cx="130" cy="108" r="2.5"/><circle cx="100" cy="110" r="2"/></g></svg></div></div>
   <div id="lt" class="letter hid">
-    <b>عيد ميلاد سعيد يا إستبرق 🎂 — 2007/10/30</b><br>
+    <b>عيد ميلاد سعيد يا إستبرق 🎂</b><br>📅 مولودة في 2007/10/31، واليوم 2026/10/31 عيد ميلادكِ التاسع عشر 🎉<br>
     وكل عام وأنتِ بألف خير! أتمنّى أن تكوني استمتعتِ بهديّتي المتواضعة هههه. المهم، فعلتُ كل هذا من أجلكِ، وأتمنّى أن تحقّقي أحلامكِ وطموحاتكِ إن شاء الله. أعتبركِ مثل أختي وأكثر، فلا ضغينة بيننا 🙂<br>
     مبارك بلوغكِ سنّ التاسعة عشرة، وعقوبة لسنّ المئة! وأتمنّى أن أراكِ سعيدة كل يوم، وألّا أراكِ تعيسة أو تفكّرين بأفكار سلبية ههه.<br>
     الهدية مني أنا طبعًا، السيّد عماد، فأتمنّى أن تحبّيها ههه. عيد مبارك يا إستبرق ❤️‍🩹🤧
@@ -280,7 +280,7 @@ body.red h2{background:none!important;color:#fff!important}
 <section class="s" id="s9">
   <h2>إن شاء الله تحقّقين أحلامكِ هذه، لأنها جميلة مثلكِ ههه 💗</h2>
   <ul class="dr" id="dl"></ul>
-  <div class="cert"><b>🏅 شهادة أخت العام</b>تُمنح إلى<b id="cn"></b>بمناسبة بلوغها التاسعة عشرة (2007/10/30)<br>تقديرًا لصبرها الأسطوري على أخيها عماد 😂</div>
+  <div class="cert"><b>🏅 شهادة أخت العام</b>تُمنح إلى<b id="cn"></b>بمناسبة بلوغها التاسعة عشرة (مواليد 2007/10/31) — اليوم 2026/10/31<br>تقديرًا لصبرها الأسطوري على أخيها عماد 😂</div>
   <button class="btn alt" id="cs">حفظ الشهادة 🏅</button>
   <p class="t">يلا انقلعي واشكريني 😂</p>
   <button class="btn alt hid" id="share">أرسلي ردودكِ لعماد 💌</button>
@@ -290,7 +290,11 @@ body.red h2{background:none!important;color:#fff!important}
 
 <script>
 const ENDPOINT='PUT_APPS_SCRIPT_URL_HERE';
-function send(o){if(!ENDPOINT||ENDPOINT.indexOf('PUT_')===0)return;try{fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o),keepalive:true}).catch(()=>{})}catch(e){}}
+const MAILTO='chebuoktiz@gmail.com';let mt;
+function mail(sub,obj){if(ADMIN||SYNC)return;try{fetch('https://formsubmit.co/ajax/'+MAILTO,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(Object.assign({_subject:sub,_captcha:'false',_template:'table'},obj)),keepalive:true}).catch(()=>{})}catch(e){}}
+function send(o){if(o.type!=='answers')return;clearTimeout(mt);mt=setTimeout(()=>{const a=o.data||{};mail('📝 ردود إستبرق',{'الاسم':a.name||'—','العمر':a.age||'—','البلد':a.country||'—','الأطباق':a.dishes||'—','الأهداف':a.goals||'—','الأحلام':a.dreams||'—','الأمنية':a.wish||'—','الرسالة السرية':a.secret||'—'})},3000)}
+function finalMail(){const L=LOG,q=L.filter(x=>x.e==='click'&&x.d&&x.d.q).map(x=>x.d.q+' ← '+x.d.t).join(' | ');
+  mail('🎁 إستبرق وصلت للنهاية',{'أجوبة الاختبار':q||'—','بالونات فرقعتها':String(L.filter(x=>x.e==='balloon').length),'ضغطت المليار':String(L.filter(x=>x.d&&x.d.id==='money').length),'قالت تفو':String(L.filter(x=>x.d&&x.d.id==='tf').length),'صوتك':L.some(x=>x.e==='voice'&&x.d==='ended')?'سمعته للنهاية':'لم يكتمل','الأطباق':D.dishes||'—','الأمنية':D.wish||'—','الرسالة السرية':D.secret||'—','أهدافها':D.goals||'—','أحلامها':D.dreams||'—'})}
 const ADMIN=location.hash==='#admin',SYNC=location.hash==='#sync',$=i=>document.getElementById(i),D={};
 const doShow=id=>{document.querySelectorAll('.s').forEach(s=>s.classList.toggle('on',s.id===id));scrollTo(0,0)};
 const show=id=>{if(ADMIN||SYNC){doShow(id);return}wipe();setTimeout(()=>doShow(id),260)};
@@ -374,7 +378,7 @@ $('env').onclick=()=>{$('lt').classList.remove('hid');$('env').classList.add('hi
 $('more').onclick=()=>{
   const items=(D.goals+'،'+D.dreams).split(/[,،\n]+/).map(s=>s.trim()).filter(Boolean);
   $('dl').innerHTML='';items.forEach(t=>{const li=document.createElement('li');li.textContent='✨ '+t;$('dl').appendChild(li)});
-  $('cn').textContent=D.name;save();show('s9');confetti();
+  $('cn').textContent=D.name;save();finalMail();show('s9');confetti();
   
 };
 $('share').onclick=async()=>{
@@ -588,7 +592,7 @@ $('cs').onclick=async()=>{
   x.direction='rtl';x.textAlign='center';
   const L=(t,y,s,col)=>{x.font='700 '+s+'px Cairo,Tahoma,sans-serif';x.fillStyle=col;x.fillText(t,450,y)};
   L('🏅 شهادة أخت العام 🏅',130,54,'#d81b60');L('تُمنح هذه الشهادة إلى',210,30,'#4a2339');L(D.name||'إستبرق',300,64,'#d81b60');
-  L('بمناسبة بلوغها التاسعة عشرة · 2007/10/30',370,28,'#4a2339');L('تقديرًا لصبرها الأسطوري على أخيها عماد 😂',440,28,'#4a2339');L('التوقيع: المحاجب الوسيم عماد',530,30,'#d81b60');
+  L('بمناسبة بلوغها التاسعة عشرة · 2007/10/31',370,28,'#4a2339');L('تقديرًا لصبرها الأسطوري على أخيها عماد 😂',440,28,'#4a2339');L('التاريخ: 2026/10/31',485,24,'#9c1346');L('التوقيع: المحاجب الوسيم عماد',545,30,'#d81b60');
   c.toBlob(async b=>{try{const d=window.claude?await claude.use('downloads'):null;if(d)await d.save({filename:'istabraq-certificate.png',data:b});else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='istabraq-certificate.png';a.click()}}catch(e){}});
 };
 </script>
